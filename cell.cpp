@@ -17,7 +17,11 @@ void Cell::UnrevealCond(){
     revealed_ = false;
 }
 
+bool Cell::isFlaged(){
+    return !this->icon().isNull();
+}
+
 void Cell::mouseReleaseEvent(QMouseEvent *e) {
     if (e->button() == Qt::RightButton) emit rightClicked(this);
-    else if (e->button() == Qt::LeftButton) emit ClickedP(this);
+    else if (e->button() == Qt::LeftButton) emit leftClicked(this);
 }

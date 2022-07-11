@@ -13,8 +13,9 @@ public:
     bool IsRevealed();
     void RevealCond();
     void UnrevealCond();
+    bool isFlaged();
 signals:
-    void ClickedP(Cell* p);
+    void leftClicked(Cell* p);
     void rightClicked(Cell* p);
 private:
     Position pos_;

@@ -1,4 +1,5 @@
 #pragma once
+#include <list>
 
 class Position
 {
@@ -8,3 +9,5 @@ public:
     int y_;
 };
 
+bool isValidPosition(Position pos);
+std::list<Position> GetPositionArea(Position pos);
