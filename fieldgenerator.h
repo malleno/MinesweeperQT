@@ -13,10 +13,8 @@ public:
     FieldGenerator(int width, int heigth);
     void Generate();
     void DrawField();
-    std::vector<std::vector<char>> SendField();
-    char GetCellValue(int x, int y);
-    bool IsMine(int x, int y);
-    bool IsFreeCell(int x, int y);
+    std::vector<std::vector<char>> ConstructField();
+    bool IsMine(Position pos);
 
 private:
     std::vector<std::vector<char>> field_;

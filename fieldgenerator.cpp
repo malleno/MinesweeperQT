@@ -6,21 +6,23 @@ FieldGenerator::FieldGenerator(int width, int heigth):width_(width), heigth_(hei
 }
 
 void FieldGenerator::Generate(){
+    srand(time(0));
     ResetField();
     double probabilyty;
     for(int i = 0; i < heigth_; ++i){
         for(int j = 0; j < width_; ++j){
             probabilyty = GenerateProbability();
-            if(probabilyty > 0.9){
+            if(probabilyty > 0.85){
                 PlaceMine(Position(j,i));
             }
         }
     }
     for(int i = 0; i < heigth_; ++i){
         for(int j = 0; j < width_; ++j){
-            if(IsMine(j,i)) IncrimentArea(Position(j,i));
+            if(IsMine(Position(j,i))) IncrimentArea(Position(j,i));
         }
     }
+    DrawField();
 }
 
 void FieldGenerator::PlaceMine(Position pos){
@@ -28,54 +30,21 @@ void FieldGenerator::PlaceMine(Position pos){
 
 
 }
-bool FieldGenerator::IsMine(int x, int y){
-   return field_.at(y).at(x) == 'X';
+bool FieldGenerator::IsMine(Position pos){
+   return field_.at(pos.y_).at(pos.x_) == 'X';
 }
 
 void FieldGenerator::IncrimentArea(Position pos){
-    //qDebug() << "IncrimentArea " <<x << " " << y;
-    bool leftValid = true;
-    bool upValid = true;
-    bool rightValid = true;
-    bool downValid = true;
-    if(pos.x_ - 1 < 0) leftValid = false;
-    if(pos.y_ - 1 < 0) upValid = false;
-    if(pos.x_ + 1 > width_ - 1) rightValid = false;
-    if(pos.y_ + 1 > heigth_ - 1) downValid = false;
-    if(leftValid){
-        if(!IsMine(pos.x_-1, pos.y_)) IncrimentCell(Position(pos.x_-1,pos.y_));
-        if(upValid){
-            if(!IsMine(pos.x_-1, pos.y_-1))IncrimentCell(Position(pos.x_-1,pos.y_-1));
-        }
-
-    }
-    if(upValid){
-        if(!IsMine(pos.x_, pos.y_-1)) IncrimentCell(Position(pos.x_,pos.y_-1));
-        if(rightValid){
-            if(!IsMine(pos.x_+1, pos.y_-1))IncrimentCell(Position(pos.x_+1,pos.y_-1));
-        }
-    }
-    if(rightValid){
-        if(!IsMine(pos.x_+1, pos.y_)) IncrimentCell(Position(pos.x_+1,pos.y_));
-        if(downValid){
-            if(!IsMine(pos.x_+1, pos.y_+1))IncrimentCell(Position(pos.x_+1,pos.y_+1));
-        }
-    }
-    if(downValid){
-        if(!IsMine(pos.x_, pos.y_+1)) IncrimentCell(Position(pos.x_,pos.y_+1));
-        if(leftValid){
-            if(!IsMine(pos.x_-1, pos.y_+1))IncrimentCell(Position(pos.x_-1,pos.y_+1));
+    std::list<Position> PositionArea = GetPositionArea(pos);
+    for(Position pos : PositionArea){
+        if(!IsMine(pos)){
+            IncrimentCell(pos);
         }
     }
 }
 
-bool FieldGenerator::IsFreeCell(int x, int y){
-    return field_.at(y).at(x) == '0';
-}
 void FieldGenerator::IncrimentCell(Position pos){
-    //qDebug() << "IncrimentCell" << x << " " << y;
     int cellValue = field_.at(pos.y_).at(pos.x_) - '0';
-    //qDebug() << "Cell value: "<< field_.at(y).at(x) << " Int:"<< cellValue;
     field_.at(pos.y_).at(pos.x_) = ++cellValue + '0';
 }
 
@@ -84,6 +53,7 @@ float FieldGenerator::GenerateProbability(){
 }
 
 void FieldGenerator::DrawField(){
+    qDebug() << "__FIELD__";
     for(int i = 0; i < heigth_; ++i){
         QString s = "";
         for(int j = 0; j < width_; ++j){
@@ -92,10 +62,7 @@ void FieldGenerator::DrawField(){
         }
         qDebug() << s;
     }
-}
-
-char FieldGenerator::GetCellValue(int x, int y){
-    return field_.at(y).at(x);
+    qDebug() << "__END_FIELD__";
 }
 
 void FieldGenerator::ResetField(){
@@ -107,6 +74,7 @@ void FieldGenerator::ResetField(){
     srand(time(0));
 }
 
-std::vector<std::vector<char>> FieldGenerator::SendField(){
+std::vector<std::vector<char>> FieldGenerator::ConstructField(){
+    Generate();
     return field_;
 }
