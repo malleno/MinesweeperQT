@@ -1,58 +1,79 @@
 #include "fieldgenerator.h"
 
-FieldGenerator::FieldGenerator(int width, int heigth):width_(width), heigth_(heigth)
+FieldGenerator::FieldGenerator(int width, int heigth):
+    width_(width),
+    heigth_(heigth)
 {
-    ResetField();
 }
 
-void FieldGenerator::Generate(){
+
+
+void FieldGenerator::generateField()
+{
     srand(time(0));
-    ResetField();
+    resetField();
     double probabilyty;
     for(int i = 0; i < heigth_; ++i){
         for(int j = 0; j < width_; ++j){
-            probabilyty = GenerateProbability();
+            probabilyty = generateProbability();
             if(probabilyty > 0.85){
-                PlaceMine(Position(j,i));
+                placeMine (Position(j,i));
             }
         }
     }
     for(int i = 0; i < heigth_; ++i){
         for(int j = 0; j < width_; ++j){
-            if(IsMine(Position(j,i))) IncrimentArea(Position(j,i));
+            if(isMine (Position(j,i))){
+                incrimentArea (Position(j,i));
+            }
         }
     }
-    DrawField();
+    drawField();
 }
 
-void FieldGenerator::PlaceMine(Position pos){
+
+
+void FieldGenerator::placeMine(Position pos)
+{
     field_.at(pos.y_).at(pos.x_) = 'X';
-
-
 }
-bool FieldGenerator::IsMine(Position pos){
+
+
+
+bool FieldGenerator::isMine(Position pos)
+{
    return field_.at(pos.y_).at(pos.x_) == 'X';
 }
 
-void FieldGenerator::IncrimentArea(Position pos){
-    std::list<Position> PositionArea = GetPositionArea(pos);
+
+
+void FieldGenerator::incrimentArea(Position pos)
+{
+    std::list<Position> PositionArea = getPositionArea(pos);
     for(Position pos : PositionArea){
-        if(!IsMine(pos)){
-            IncrimentCell(pos);
+        if(!isMine(pos)){
+            incrimentCell(pos);
         }
     }
 }
 
-void FieldGenerator::IncrimentCell(Position pos){
+void FieldGenerator::incrimentCell(Position pos)
+{
     int cellValue = field_.at(pos.y_).at(pos.x_) - '0';
     field_.at(pos.y_).at(pos.x_) = ++cellValue + '0';
 }
 
-float FieldGenerator::GenerateProbability(){
+
+
+float FieldGenerator::generateProbability()
+{
     return std::rand()/static_cast<float>(RAND_MAX);
 }
 
-void FieldGenerator::DrawField(){
+
+
+void FieldGenerator::drawField()
+{
     qDebug() << "__FIELD__";
     for(int i = 0; i < heigth_; ++i){
         QString s = "";
@@ -65,7 +86,10 @@ void FieldGenerator::DrawField(){
     qDebug() << "__END_FIELD__";
 }
 
-void FieldGenerator::ResetField(){
+
+
+void FieldGenerator::resetField()
+{
     field_.resize(heigth_);
     for(int i = 0; i < heigth_; ++i){
         field_.at(i).clear();
@@ -74,7 +98,10 @@ void FieldGenerator::ResetField(){
     srand(time(0));
 }
 
-std::vector<std::vector<char>> FieldGenerator::ConstructField(){
-    Generate();
+
+
+std::vector<std::vector<char>> FieldGenerator::constructField()
+{
+    generateField();
     return field_;
 }

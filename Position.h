@@ -10,4 +10,4 @@ public:
 };
 
 bool isValidPosition(Position pos);
-std::list<Position> GetPositionArea(Position pos);
+std::list<Position> getPositionArea(Position pos);

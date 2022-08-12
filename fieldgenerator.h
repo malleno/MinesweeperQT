@@ -11,20 +11,22 @@ class FieldGenerator
 public:
     FieldGenerator() = delete;
     FieldGenerator(int width, int heigth);
-    void Generate();
-    void DrawField();
-    std::vector<std::vector<char>> ConstructField();
-    bool IsMine(Position pos);
+    void drawField();
+    std::vector<std::vector<char>> constructField();
+
+private:
+    void generateField();
+    void resetField();
+
+    void placeMine(Position pos);
+    bool isMine(Position pos);
+    void incrimentArea(Position pos);
+    void incrimentCell(Position pos);
+    float generateProbability();
 
 private:
     std::vector<std::vector<char>> field_;
     int width_;
     int heigth_;
-
-    void PlaceMine(Position pos);
-    void ResetField();
-    void IncrimentArea(Position pos);
-    void IncrimentCell(Position pos);
-    float GenerateProbability();
 };
 

@@ -1,7 +1,13 @@
 #include "miner.h"
 
-Miner::Miner(QWidget *parent) : QWidget(parent), width_(400), height_(400),
-    columnSize_(height_/25),rowSize_(width_/25), fieldviewer_(new FieldViewer){
+Miner::Miner(QWidget *parent) :
+    QWidget(parent),
+    width_(400),
+    height_(400),
+    columnSize_(height_/25),
+    rowSize_(width_/25),
+    fieldviewer_(new FieldViewer)
+{
     this->setWindowTitle("Miner");
     this->setMinimumSize(width_,height_);
     this->setMaximumSize(width_,height_);
@@ -21,90 +27,115 @@ Miner::Miner(QWidget *parent) : QWidget(parent), width_(400), height_(400),
 
     QGridLayout* info_layout = new QGridLayout();
     info_layout->addWidget(pbReset,0,0);
-    info_layout->addWidget(new QLabel("29"),1,1);
 
-
-    SetupFieldLayout();
+    setupFieldLayout();
 
     main_layout_ = new QVBoxLayout;
-    //main_layout_ -> addWidget(pbReset);
     main_layout_ -> addLayout(info_layout);
     main_layout_ -> addLayout(layout_field_);
-    SetupLayout();
+    setupLayout();
     qDebug() << "MainWindow Setup done";
 
-    fieldviewer_ -> Generate();
+    fieldviewer_ -> generateField();
     qDebug() << "Field Constructed";
     qDebug() << "Miner Constructed";
-
 }
 
-void Miner::slotCellLeftClicked(Cell* cell){
-    qDebug() << "Left click";
-    RevealCell(cell);
-    WinningChek();
+
+
+void Miner::slotCellLeftClicked(Cell* cell)
+{
+    revealCell(cell);
+    winningChek();
 }
 
-void Miner::slotCellRightClicked(Cell* wd){
-   ChangeCellStatus(wd);
-   WinningChek();
+
+
+void Miner::slotCellRightClicked(Cell* wd)
+{
+   changeCellStatus(wd);
+   winningChek();
 }
 
-void Miner::slotResetGame(){
-    ResetFieldLayout();
+
+
+void Miner::slotResetGame()
+{
+    resetFieldLayout();
 }
 
-void Miner::slotBomb(){
+
+
+void Miner::slotBomb()
+{
     QWidget* LossNotification = new QWidget();
+
     QPushButton* pbReset = new QPushButton("New Game");
     connect(pbReset, SIGNAL(clicked()), SLOT(slotResetGame()));
     connect(pbReset, SIGNAL(clicked()),LossNotification, SLOT(close()));
+
     QLabel* lb = new QLabel("You lose.");
-    QVBoxLayout* layout = new QVBoxLayout;
     lb -> setAlignment(Qt::AlignmentFlag::AlignCenter);
+
+    QVBoxLayout* layout = new QVBoxLayout;
     layout->addWidget(lb);
     layout->addWidget(pbReset);
+
     LossNotification->setLayout(layout);
     LossNotification->show();
 }
 
-void Miner::RevealCell(Cell* cell){
+
+
+void Miner::revealCell(Cell* cell)
+{
     if(cell->isFlaged()){
         return;
     }
-    Position pos = cell->GetPosition();
-    UpdateLabel(pos);
-    if(fieldviewer_->IsMine(pos)){
-        UpdateCellForMine(pos);
-        qDebug() << "signam Bomb emited";
+
+    Position pos = cell->getPosition();
+    updateLabel(pos);
+
+    if(fieldviewer_->isMine(pos)){
+        updateCellForMine(pos);
         emit signalBomb();
         return;
     }
-    SwapCellAndLabbel(pos);
-    if(fieldviewer_->IsFreeCell(pos))RevealCellArea(pos);
+
+    swapCellAndLabbel(pos);
+    if(fieldviewer_->isFreeCell(pos)){
+        revealCellArea(pos);
+    }
 }
 
-void Miner::RevealCellArea(Position pos){
+
+
+void Miner::revealCellArea(Position pos)
+{
     Cell* cell = nullptr;
-    std::list<Position> PositionArea = GetPositionArea(pos);
+    std::list<Position> PositionArea = getPositionArea(pos);
     for(Position pos : PositionArea){
-        cell = GetCellPtr(pos);
-        if(!fieldviewer_->IsMine(pos) && !cell->IsRevealed()){
-            RevealCell(cell);
+        cell = getCellPtr(pos);
+        if(!fieldviewer_->isMine(pos) && !cell->isRevealed()){
+            revealCell(cell);
         }
     }
 }
 
-void Miner::UnRevealCell(Cell* cell){
-    Position pos = cell->GetPosition();
-    if(cell->IsRevealed()){
-         SwapCellAndLabbel(pos);
+
+
+void Miner::unrevealCell(Cell* cell)
+{
+    Position pos = cell->getPosition();
+    if(cell->isRevealed()){
+         swapCellAndLabbel(pos);
     }
 }
 
 
 
-Cell* Miner::CreateCell(Position pos){
+Cell* Miner::createCell(Position pos)
+{
     int cell_side = 25;
     Cell* field = new Cell(pos.x_, pos.y_);
     field->setMaximumSize(cell_side, cell_side);
@@ -113,7 +144,10 @@ Cell* Miner::CreateCell(Position pos){
     return field;
 }
 
-QLabel* Miner::CreateCellLabel(){
+
+
+QLabel* Miner::createCellLabel()
+{
     QLabel* lb = new QLabel();
     int cell_side = 25;
     lb->setMaximumSize(cell_side, cell_side);
@@ -121,20 +155,24 @@ QLabel* Miner::CreateCellLabel(){
     return lb;
 }
 
-Cell* Miner::GetCellPtr(Position pos){
+
+
+Cell* Miner::getCellPtr(Position pos){
     return cells_ptrs_.at(pos.x_).at(pos.y_);
 }
 
 
-void Miner::SetupFieldLayout(){
+
+void Miner::setupFieldLayout()
+{
     QGridLayout* qg_layout = new QGridLayout();
     qg_layout->setContentsMargins(5,5,5,5);
     qg_layout->setSpacing(0);
     for(int i = 0; i < height_ / 25; ++i){
         for(int j = 0; j <  width_ / 25; ++j){
-            Cell* cell = CreateCell(Position{j, i});
+            Cell* cell = createCell(Position{j, i});
             cells_ptrs_.at(j).at(i) = cell;
-            labels_ptrs_.at(j).at(i) = CreateCellLabel();
+            labels_ptrs_.at(j).at(i) = createCellLabel();
             qg_layout->addWidget(cell,j,i);
 
         }
@@ -142,71 +180,88 @@ void Miner::SetupFieldLayout(){
     layout_field_ = qg_layout;
 }
 
-void Miner::SetupLayout(){
+
+
+void Miner::setupLayout()
+{
     this->setLayout(main_layout_);
 }
 
-void Miner::ResetFieldLayout(){
+
+
+void Miner::resetFieldLayout()
+{
     for(std::vector<Cell*> row : cells_ptrs_){
         for(Cell* cell : row){
-            UnRevealCell(cell);
+            unrevealCell(cell);
             if(cell->isFlaged()){
-                ChangeCellStatus(cell);
+                changeCellStatus(cell);
             }
         }
     }
-    fieldviewer_->Generate();
+    fieldviewer_->generateField();
 }
 
 
-void Miner::UpdateLabel(Position pos){
-    char c = fieldviewer_->GetCellValue(pos);
-    if(c == 'X'){
 
-    }else{
-        UpdateLabelForNotMine(pos);
+void Miner::updateLabel(Position pos)
+{
+    char cellValue = fieldviewer_->getCellValue(pos);
+    if(cellValue != 'X'){
+        updateLabelForNotMine(pos);
     }
 }
 
-void Miner::UpdateCellForMine(Position pos){
+
+
+void Miner::updateCellForMine(Position pos)
+{
     cells_ptrs_.at(pos.x_).at(pos.y_)->setIcon(QIcon(":images/images/mine.png"));
 }
 
-void Miner::UpdateLabelForNotMine(Position pos){
-    char c = fieldviewer_->GetCellValue(pos);
-    QString cellLabel(c);
+
+
+void Miner::updateLabelForNotMine(Position pos)
+{
+    char cellValue = fieldviewer_->getCellValue(pos);
+    QString cellLabel(cellValue);
     labels_ptrs_.at(pos.x_).at(pos.y_)->setText(cellLabel);
-    labels_ptrs_.at(pos.x_).at(pos.y_)->setStyleSheet("QLabel { color : "+ GetColourOfLabel(c)+"; }");
+    labels_ptrs_.at(pos.x_).at(pos.y_)->setStyleSheet("QLabel { color : "+ getColourOfLabel(cellValue)+"; }");
 }
 
-void Miner::SwapCellAndLabbel(Position pos){
+
+
+void Miner::swapCellAndLabbel(Position pos)
+{
     Cell* cell = cells_ptrs_.at(pos.x_).at(pos.y_);
     QLabel* lb = labels_ptrs_.at(pos.x_).at(pos.y_);
-    if(!cell->IsRevealed()){
+    if(!cell->isRevealed()){
         layout_field_->removeWidget(cell);
         layout_field_ ->addWidget(lb, pos.x_,pos.y_);
         cell->hide();
         lb->show();
-        cell->RevealCond();
+        cell->revealCond();
     }else{
         layout_field_->removeWidget(lb);
         layout_field_ ->addWidget(cell, pos.x_,pos.y_);
         lb->hide();
         cell->show();
-        cell->UnrevealCond();
+        cell->unrevealCond();
     }
 }
 
-void Miner::WinningChek(){
-    qDebug() << "WiningChek";
+
+
+void Miner::winningChek()
+{
     for(int i = 0; i < height_ / 25; ++i){
         for(int j = 0; j <  width_ / 25; ++j){
-            if(fieldviewer_->IsMine(Position(i,j))){
+            if(fieldviewer_->isMine(Position(i,j))){
                 if(!cells_ptrs_.at(i).at(j)->isFlaged()){
                     return;
                 }
             }else{
-                if(!cells_ptrs_.at(i).at(j)->IsRevealed()){
+                if(!cells_ptrs_.at(i).at(j)->isRevealed()){
                     return;
                 }
             }
@@ -215,7 +270,10 @@ void Miner::WinningChek(){
     emit signalWinning();
 }
 
-void Miner::slotWinGame(){
+
+
+void Miner::slotWinGame()
+{
     QWidget* LossNotification = new QWidget();
     QPushButton* pbReset = new QPushButton("New Game");
     connect(pbReset, SIGNAL(clicked()), SLOT(slotResetGame()));
@@ -229,7 +287,10 @@ void Miner::slotWinGame(){
     LossNotification->show();
 }
 
-void ChangeCellStatus(Cell* wd){
+
+
+void changeCellStatus(Cell* wd)
+{
     if(wd->icon().isNull()){
          wd->setIcon(QIcon(":images/images/flag.png"));
     }else{
@@ -237,7 +298,10 @@ void ChangeCellStatus(Cell* wd){
     }
 }
 
-QString GetColourOfLabel(char c){
+
+
+QString getColourOfLabel(char c)
+{
     std::vector<QString> colours = {"white","blue", "green", "red", "cyan",
                                     "magenta","darkRed", "darkBlue", "black"};
     int colourId = c - '0';
